@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
+import 'conversion-view.dart';
+import 'converter.dart';
 import 'presentation/nova_icons.dart';
 
 void main() => runApp(MyApp());
 
-class Topic {
+class Category {
   final String name;
   final Icon icon;
-  final String route;
+  final List<Unit> units;
 
-  Topic(this.name, this.icon, {this.route});
+  Category(this.name, this.icon, this.units);
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
@@ -31,36 +32,69 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   int _currentTab = 0;
-  List<Topic> _basicTopics = [
-    Topic('Length', Icon(NovaIcons.tools_measuring_tape)),
-    Topic('Area', Icon(NovaIcons.vector_square_1)),
-    Topic('Volume', Icon(NovaIcons.box_2)),
-    Topic('Temperature', Icon(NovaIcons.fire_lighter)),
-    Topic('Weight', Icon(NovaIcons.sport_dumbbell_1)),
-    Topic('Speed', Icon(NovaIcons.video_control_fast_forward)),
-    Topic('Time', Icon(NovaIcons.calendar_1)),
+  List<Category> _basicCategories = [
+    Category('Length', Icon(NovaIcons.tools_measuring_tape),
+      [
+        Unit('meter', 'm', 0, 1.0, 0),
+        Unit('foot', 'ft', 0, 0.304800610, 0),
+        Unit('kilometer', 'km', 0, 1000, 0),
+        Unit('yard', 'yd', 0, 0.9144, 0),
+      ],
+    ),
+    Category('Area', Icon(NovaIcons.vector_square_1),
+      [],
+    ),
+    Category('Volume', Icon(NovaIcons.box_2),
+      [],
+    ),
+    Category('Temperature', Icon(NovaIcons.fire_lighter),
+      [],
+    ),
+    Category('Weight', Icon(NovaIcons.sport_dumbbell_1),
+      [],
+    ),
+    Category('Speed', Icon(NovaIcons.video_control_fast_forward),
+      [],
+    ),
+    Category('Time', Icon(NovaIcons.calendar_1),
+      [],
+    ),
   ];
-  List<Topic> _scienceTopics = [
-    Topic('Pressure', Icon(NovaIcons.water_droplet)),
-    Topic('Energy', Icon(NovaIcons.flash)),
-    Topic('Force', Icon(NovaIcons.cursor_arrow_1)),
-    Topic('Current', Icon(NovaIcons.battery_charging_1)),
+  List<Category> _scienceCategories = [
+    Category('Pressure', Icon(NovaIcons.water_droplet),
+      [],
+    ),
+    Category('Energy', Icon(NovaIcons.flash),
+      [],
+    ),
+    Category('Force', Icon(NovaIcons.cursor_arrow_1),
+      [],
+    ),
+    Category('Current', Icon(NovaIcons.battery_charging_1),
+      [],
+    ),
   ];
-  List<Topic> _financeTopics = [
-    Topic('Tip', Icon(NovaIcons.banking_spendings_1)),
-    Topic('Loan', Icon(NovaIcons.business_briefcase_cash)),
-    Topic('Currency', Icon(NovaIcons.location_pin_bank_2)),
+  List<Category> _financeCategories = [
+    Category('Tip', Icon(NovaIcons.banking_spendings_1),
+      [],
+    ),
+    Category('Loan', Icon(NovaIcons.business_briefcase_cash),
+      [],
+    ),
+    Category('Currency', Icon(NovaIcons.location_pin_bank_2),
+      [],
+    ),
   ];
 
   Widget _buildTab() {
     return SliverGrid.count(
       crossAxisCount: 2,
       childAspectRatio: 2.5,
-      children: _buildTopics(),
+      children: _buildCategories(),
     );
   }
 
-  Widget _buildTopicCard(Topic topic){
+  Widget _buildTopicCard(Category topic){
     return Card(
       elevation: 2.0,
       shape: RoundedRectangleBorder(
@@ -68,7 +102,12 @@ class _MainViewState extends State<MainView> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
-        onTap: () {},
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ConversionView(topic))
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
@@ -83,13 +122,13 @@ class _MainViewState extends State<MainView> {
     );
   }
 
-  List<Widget> _buildTopics() {
+  List<Widget> _buildCategories() {
     if(_currentTab == 0) {
-      return _basicTopics.map((topic) => _buildTopicCard(topic)).toList();
+      return _basicCategories.map((topic) => _buildTopicCard(topic)).toList();
     } else if (_currentTab == 1) {
-      return _scienceTopics.map((topic) => _buildTopicCard(topic)).toList();
+      return _scienceCategories.map((topic) => _buildTopicCard(topic)).toList();
     } else {
-      return _financeTopics.map((topic) => _buildTopicCard(topic)).toList();
+      return _financeCategories.map((topic) => _buildTopicCard(topic)).toList();
     }
   }
 
