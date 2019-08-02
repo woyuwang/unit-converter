@@ -9,12 +9,12 @@ class Unit {
 
   static double convertToSI(Unit unit, double value) {
     if(value == null) value = 0;
-    return (value - unit.offset) * unit.factor - unit.factoredOffset;
+    return (value + unit.offset) * unit.factor + unit.factoredOffset;
   }
 
   static double convertFromSI(Unit unit, double value) {
     if(value == null) value = 0;
-    return (value + unit.factoredOffset) / unit.factor + unit.offset;
+    return (value - unit.factoredOffset) / unit.factor - unit.offset;
   }
 
   static double convert(Unit from, Unit to, double value) {

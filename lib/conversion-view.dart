@@ -22,8 +22,10 @@ class _ConversionViewState extends State<ConversionView> {
   void initState() {
     super.initState();
 
-    _from = widget.category.units[0];
-    _to = widget.category.units[1];
+    if(widget.category.units.length >= 1) {
+      _from = widget.category.units[0];
+      _to = widget.category.units[0];
+    }
     if(double.tryParse(_inputController.text) != null) _toV = Unit.convert(_from, _to, double.tryParse(_inputController.text));
   }
 
@@ -35,7 +37,7 @@ class _ConversionViewState extends State<ConversionView> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             widget.category.icon,
-            SizedBox(width: 16.0),
+            SizedBox(width: 8.0),
             Text(widget.category.name),
           ],
         ),
