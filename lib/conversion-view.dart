@@ -13,20 +13,27 @@ class ConversionView extends StatefulWidget {
 }
 
 class _ConversionViewState extends State<ConversionView> {
-  Unit _from;
-  Unit _to;
-  double _toV;
-  final _inputController = TextEditingController();
+  List<Unit> _units = List<Unit>();
+  List<TextEditingController> _inputControllers = List<TextEditingController>();
 
   @override
   void initState() {
     super.initState();
 
-    if(widget.category.units.length >= 1) {
-      _from = widget.category.units[0];
-      _to = widget.category.units[0];
+    _setupUnits();
+    _setupInputControllers();
+  }
+
+  void _setupUnits() {
+    for(int i = 0; i < widget.category.units.length; i++) {
+      _units.add(widget.category.units[i]);
     }
-    if(double.tryParse(_inputController.text) != null) _toV = Unit.convert(_from, _to, double.tryParse(_inputController.text));
+  }
+
+  void _setupInputControllers() {
+    for(int i = 0; i < widget.category.units.length; i++) {
+      _inputControllers.add(TextEditingController(text: '0.0'));
+    }
   }
 
   @override
@@ -42,59 +49,77 @@ class _ConversionViewState extends State<ConversionView> {
           ],
         ),
       ),
-      body: Column(
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-          ),
-          DropdownButton<Unit>(
-            value: _from,
-            onChanged: (unit) {
-              setState(() {
-                _from = unit;
-                _toV = Unit.convert(_from, _to, double.tryParse(_inputController.text));
-              });
-            },
-            items: widget.category.units.map((unit) {
-              return DropdownMenuItem<Unit>(
-                value: unit,
-                child: Text(unit.name),
-              );
-            }).toList(),
-          ),
-          Container(
-            width: 200.0,
-            child: TextField(
-              controller: _inputController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Input a number',
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _toV = Unit.convert(_from, _to, double.tryParse(_inputController.text));
-                });
-              },
-            ),
-          ),
-          DropdownButton<Unit>(
-            value: _to,
-            onChanged: (unit) {
-              setState(() {
-                _to = unit;
-                _toV = Unit.convert(_from, _to, double.tryParse(_inputController.text));
-              });
-            },
-            items: widget.category.units.map((unit) {
-              return DropdownMenuItem<Unit>(
-                value: unit,
-                child: Text(unit.name),
-              );
-            }).toList(),
-          ),
-          Text(_toV == null ? '0' : _toV.toStringAsFixed(3)),
-        ],
+      body: ListView.builder(
+        itemCount: widget.category.units.length,
+        itemBuilder: _buildListItem,
       ),
     );
+  }
+
+  Widget _buildListItem(BuildContext context, int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        SizedBox(width: 8.0),
+        DropdownButton<Unit>(
+          value: _units[index],
+          onChanged: (unit) {
+            setState(() {
+              _units[index] = unit;
+              _updateValues(index);
+            });
+          },
+          items: widget.category.units.map((unit) {
+            return DropdownMenuItem<Unit>(
+              value: unit,
+              child: Text(
+                unit.name,
+                style: TextStyle(
+                  fontSize: 15.0,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        SizedBox(width: 4.0),
+        Container(
+          width: 100.0,
+          child: TextField(
+            controller: _inputControllers[index],
+            keyboardType: TextInputType.number,
+            style: TextStyle(
+              fontSize: 15.0,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Input a number',
+            ),
+            onChanged: (value) {
+              setState(() {
+                _updateValues(index);
+              });
+            },
+          ),
+        ),
+        SizedBox(width: 4.0),
+        Text(
+          widget.category.units[index].symbol,
+          style: TextStyle(
+            fontSize: 10.0,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _updateValues(int index) {
+    for(int i = 0; i < _inputControllers.length; i++) {
+      if(i != index) {
+        if(double.tryParse(_inputControllers[index].text) != null) {
+          _inputControllers[i].text = Unit.convert(_units[index], _units[i], double.tryParse(_inputControllers[index].text)).toString();
+        } else {
+          _inputControllers[i].text = '0.0';
+        }
+      }
+    }
   }
 }
