@@ -32,7 +32,10 @@ class _ConversionViewState extends State<ConversionView> {
 
   void _setupInputControllers() {
     for(int i = 0; i < widget.category.units.length; i++) {
-      _inputControllers.add(TextEditingController(text: '0.0'));
+      if(i == 0) _inputControllers.add(TextEditingController(text: '0.0'));
+      else _inputControllers.add(TextEditingController(
+        text: Unit.convert(_units[0], _units[i], 0.0).toString()
+      ));
     }
   }
 
@@ -43,7 +46,7 @@ class _ConversionViewState extends State<ConversionView> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            widget.category.icon,
+            Icon(widget.category.icon),
             SizedBox(width: 8.0),
             Text(widget.category.name),
           ],
