@@ -453,13 +453,34 @@ class _MainViewState extends State<MainView> {
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
-              return Text('Connection not started!');
+              return Center(
+                child: Text(
+                  'Connection not started.',
+                  style: TextStyle(
+                    fontSize: 30.0,
+                  ),
+                ),
+              );
             case ConnectionState.active:
             case ConnectionState.waiting:
-              return Text('Awaiting result...');
+            return Center(
+              child: Text(
+                'Loading...',
+                style: TextStyle(
+                  fontSize: 30.0,
+                ),
+              ),
+            );
             case ConnectionState.done:
               if (snapshot.hasError)
-                return Text('Error: ${snapshot.error}');
+                return Center(
+                  child: Text(
+                    'Error: ${snapshot.error}',
+                    style: TextStyle(
+                      fontSize: 30.0,
+                    ),
+                  ),
+                );
               return CustomScrollView(
                 slivers: <Widget>[
                   _buildTab(),
