@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'about-view.dart';
 import 'conversion-view.dart';
 import 'converter.dart';
 import 'presentation/nova_icons.dart';
@@ -442,11 +443,36 @@ class _MainViewState extends State<MainView> {
     }
   }
 
+  void _onAppbarDropdownSelected(String value) {
+    if(value == 'About') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AboutView())
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Unit Converter'),
+        title: Text('Unit Converter Alpha'),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+            onSelected: _onAppbarDropdownSelected,
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem(
+                value: 'About',
+                child: Text('About'),
+              ),
+              PopupMenuItem(
+                value: 'Settings',
+                child: Text('Settings'),
+                enabled: false,
+              ),
+            ],
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: _loadUnits(),
