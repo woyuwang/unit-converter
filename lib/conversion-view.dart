@@ -34,9 +34,17 @@ class _ConversionViewState extends State<ConversionView> {
     for(int i = 0; i < widget.category.units.length; i++) {
       if(i == 0) _inputControllers.add(TextEditingController(text: '0.0'));
       else _inputControllers.add(TextEditingController(
-        text: Unit.convert(_units[0], _units[i], 0.0).toString()
+        text: Unit.convert(_units[0], _units[i], 0.0).toString(),
+
       ));
     }
+  }
+
+  void dispose() {
+    for(int i = 0; i < _inputControllers.length; i++) {
+      _inputControllers[i].dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -118,7 +126,7 @@ class _ConversionViewState extends State<ConversionView> {
     for(int i = 0; i < _inputControllers.length; i++) {
       if(i != index) {
         if(double.tryParse(_inputControllers[index].text) != null) {
-          _inputControllers[i].text = Unit.convert(_units[index], _units[i], double.tryParse(_inputControllers[index].text)).toString();
+          _inputControllers[i].text = Unit.convert(_units[index], _units[i], double.tryParse(_inputControllers[index].text)).toStringAsFixed(2);
         } else {
           _inputControllers[i].text = '0.0';
         }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'about-view.dart';
 import 'conversion-view.dart';
 import 'converter.dart';
@@ -36,7 +37,7 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   Future<void> _loadUnits() async {
-    _basicCategories = [
+    _categories = [
       Category('Length', NovaIcons.tools_measuring_tape,
         [
           Unit('meter', 'm', 0, 1, 0),
@@ -350,36 +351,63 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.pink,
       ),
-    ];
-    _financeCategories = [
       Category('Tip', NovaIcons.banking_spendings_1,
         [
           Unit('Initial Amount', '', 0, 1, 0),
-          Unit('8%', '', 0, 1/1.08, 0),
-          Unit('10%', '', 0, 1/1.1, 0),
-          Unit('12%', '', 0, 1/1.12, 0),
-          Unit('15%', '', 0, 1/1.15, 0),
-          Unit('18%', '', 0, 1/1.18, 0),
-          Unit('20%', '', 0, 1/1.2, 0),
-          Unit('25%', '', 0, 1/1.25, 0),
+          Unit('8% tip', '', 0, 1/0.08, 0),
+          Unit('8% bill', '', 0, 1/1.08, 0),
+          Unit('10% tip', '', 0, 1/0.1, 0),
+          Unit('10% bill', '', 0, 1/1.1, 0),
+          Unit('12% tip', '', 0, 1/0.12, 0),
+          Unit('12% bill', '', 0, 1/1.12, 0),
+          Unit('15% tip', '', 0, 1/0.15, 0),
+          Unit('15% bill', '', 0, 1/1.15, 0),
+          Unit('18% tip', '', 0, 1/0.18, 0),
+          Unit('18% bill', '', 0, 1/1.18, 0),
+          Unit('20% tip', '', 0, 1/0.2, 0),
+          Unit('20% bill', '', 0, 1/1.2, 0),
+          Unit('25% tip', '', 0, 1/0.25, 0),
+          Unit('25% bill', '', 0, 1/1.25, 0),
         ],
-        color: Colors.pink,
+        color: Colors.yellow,
       ),
-      //Category('Loan', NovaIcons.business_briefcase_cash,
-      //  [],
-      //),
       Category('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
         _lastCurrencyRequest.difference(DateTime.now()).inHours <= 6) ? _cachedCurrencyUnits :
-        await _getCurrencyUnits(), color: Colors.amber,
+      await _getCurrencyUnits(), color: Colors.amber,
       ),
     ];
+    _favoriteCategories = await _readFavoriteCategories();
   }
 
   int _currentTab = 0;
-  List<Category> _basicCategories;
-  List<Category> _financeCategories;
+  List<Category> _categories;
+  List<Category> _favoriteCategories;
   static List<Unit> _cachedCurrencyUnits;
   static DateTime _lastCurrencyRequest;
+
+  Future<List<Category>> _readFavoriteCategories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if(prefs.getStringList('favorite-categories') == null){
+      _saveFavoriteCategories();
+      return List<Category>();
+    } else {
+      List<int> ids = prefs.getStringList('favorite-categories').map((str) => int.parse(str)).toList();
+      List<Category> favorites = new List<Category>();
+      for (int id in ids) {
+        favorites.add(_categories[id]);
+      }
+      return favorites;
+    }
+  }
+
+  _saveFavoriteCategories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> str_ids = List<String>();
+    for(Category category in _favoriteCategories) {
+      str_ids.add(_categories.indexOf(category).toString());
+    }
+    prefs.setStringList('favorite-categories', str_ids);
+  }
 
   static Future<List<Unit>> _getCurrencyUnits() async {
     var url = 'https://api.exchangeratesapi.io/latest';
@@ -405,6 +433,12 @@ class _MainViewState extends State<MainView> {
     );
   }
 
+  void _toggleFavoriteCategory(Category category) {
+    if(_favoriteCategories.contains(category)) _favoriteCategories.remove(category);
+    else _favoriteCategories.add(category);
+    _saveFavoriteCategories();
+  }
+
   Widget _buildCategoryCard(Category category){
     return Card(
       elevation: 2.0,
@@ -420,9 +454,19 @@ class _MainViewState extends State<MainView> {
           );
         },
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: <Widget>[
+              Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () {
+                    _toggleFavoriteCategory(category);
+                    setState(() {});
+                  },
+                  child: Icon(_favoriteCategories.contains(category) ? Icons.star : Icons.star_border, size: 20.0, color: Colors.yellow),
+                ),
+              ),
               Icon(category.icon, color: category.color, size: 30.0),
               SizedBox(height: 6.0),
               Expanded(
@@ -437,9 +481,9 @@ class _MainViewState extends State<MainView> {
 
   List<Widget> _buildCategories() {
     if(_currentTab == 0) {
-      return _basicCategories.map((category) => _buildCategoryCard(category)).toList();
+      return _categories.map((category) => _buildCategoryCard(category)).toList();
     } else if (_currentTab == 1) {
-      return _financeCategories.map((category) => _buildCategoryCard(category)).toList();
+      return _favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
     }
   }
 
@@ -449,6 +493,9 @@ class _MainViewState extends State<MainView> {
         context,
         MaterialPageRoute(builder: (context) => AboutView())
       );
+    } else if (value == 'Clear Favorites') {
+      _favoriteCategories = List<Category>();
+      _saveFavoriteCategories();
     }
   }
 
@@ -469,6 +516,10 @@ class _MainViewState extends State<MainView> {
                 value: 'Settings',
                 child: Text('Settings'),
                 enabled: false,
+              ),
+              PopupMenuItem(
+                value: 'Clear Favorites',
+                child: Text('Clear Favorites'),
               ),
             ],
           ),
@@ -520,11 +571,11 @@ class _MainViewState extends State<MainView> {
         items: [
           BottomNavigationBarItem(
             icon: Icon(NovaIcons.pencil_ruler),
-            title: Text('Basic'),
+            title: Text('Converters'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(NovaIcons.bank_note),
-            title: Text('Finance'),
+            icon: Icon(NovaIcons.vote_heart_circle_1),
+            title: Text('Favorite'),
           ),
         ],
         currentIndex: _currentTab,
