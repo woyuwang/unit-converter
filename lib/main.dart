@@ -428,7 +428,7 @@ class _MainViewState extends State<MainView> {
   Widget _buildTab() {
     return SliverGrid.count(
       crossAxisCount: 3,
-      childAspectRatio: 1.1,
+      childAspectRatio: 1,
       children: _buildCategories(),
     );
   }
@@ -464,10 +464,10 @@ class _MainViewState extends State<MainView> {
                     _toggleFavoriteCategory(category);
                     setState(() {});
                   },
-                  child: Icon(_favoriteCategories.contains(category) ? Icons.star : Icons.star_border, size: 20.0, color: Colors.yellow),
+                  child: Icon(_favoriteCategories.contains(category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber),
                 ),
               ),
-              Icon(category.icon, color: category.color, size: 30.0),
+              Icon(category.icon, color: category.color, size: 35.0),
               SizedBox(height: 6.0),
               Expanded(
                 child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(color: category.color, fontSize: 13.0)),
