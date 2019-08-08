@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'converter.dart';
-import 'main.dart';
 
 class AboutView extends StatefulWidget {
   @override
@@ -43,7 +40,7 @@ class _AboutViewState extends State<AboutView> {
             ),
             SizedBox(height: 16.0),
             Text(
-              'Version: Alpha 1.1b',
+              'Version: Alpha 1.2',
               style: TextStyle(
                 fontSize: 12.0,
               ),

@@ -4,7 +4,7 @@ import 'converter.dart';
 import 'main.dart';
 
 class ConversionView extends StatefulWidget {
-  final Category category;
+  final BasicCategory category;
 
   ConversionView(this.category);
 
@@ -32,10 +32,9 @@ class _ConversionViewState extends State<ConversionView> {
 
   void _setupInputControllers() {
     for(int i = 0; i < widget.category.units.length; i++) {
-      if(i == 0) _inputControllers.add(TextEditingController(text: '0.0'));
+      if(i == 0) _inputControllers.add(TextEditingController(text: '0.00'));
       else _inputControllers.add(TextEditingController(
-        text: Unit.convert(_units[0], _units[i], 0.0).toString(),
-
+        text: Unit.convert(_units[0], _units[i], 0.0).toStringAsFixed(2),
       ));
     }
   }
@@ -60,9 +59,12 @@ class _ConversionViewState extends State<ConversionView> {
           ],
         ),
       ),
-      body: ListView.builder(
-        itemCount: widget.category.units.length,
-        itemBuilder: _buildListItem,
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          itemCount: widget.category.units.length,
+          itemBuilder: _buildListItem,
+        ),
       ),
     );
   }
@@ -94,7 +96,7 @@ class _ConversionViewState extends State<ConversionView> {
         ),
         SizedBox(width: 4.0),
         Container(
-          width: 100.0,
+          width: 80.0,
           child: TextField(
             controller: _inputControllers[index],
             keyboardType: TextInputType.number,
@@ -115,7 +117,7 @@ class _ConversionViewState extends State<ConversionView> {
         Text(
           widget.category.units[index].symbol,
           style: TextStyle(
-            fontSize: 10.0,
+            fontSize: 12.0,
           ),
         ),
       ],
@@ -126,7 +128,8 @@ class _ConversionViewState extends State<ConversionView> {
     for(int i = 0; i < _inputControllers.length; i++) {
       if(i != index) {
         if(double.tryParse(_inputControllers[index].text) != null) {
-          _inputControllers[i].text = Unit.convert(_units[index], _units[i], double.tryParse(_inputControllers[index].text)).toStringAsFixed(2);
+          _inputControllers[i].text = Unit.convert(_units[index], _units[i], double.tryParse(
+            _inputControllers[index].text)).toStringAsFixed(2);
         } else {
           _inputControllers[i].text = '0.0';
         }

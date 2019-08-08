@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unit_converter/tip-conversion-view.dart';
 import 'about-view.dart';
 import 'conversion-view.dart';
 import 'converter.dart';
@@ -9,13 +10,22 @@ import 'dart:convert';
 
 void main() => runApp(MyApp());
 
-class Category {
+abstract class Category {
   final String name;
   final IconData icon;
-  final List<Unit> units;
   final Color color;
+  final List<Unit> units;
+  final MaterialPageRoute route;
 
-  Category(this.name, this.icon, this.units, {this.color});
+  Category(this.name, this.icon, {this.color, this.units, this.route});
+}
+
+class BasicCategory extends Category {
+  BasicCategory(String name, IconData icon, List<Unit> units, {Color color}) : super(name, icon, color: color, units: units);
+}
+
+class SpecialCategory extends Category {
+  SpecialCategory(String name, IconData icon, MaterialPageRoute route, {Color color}) : super(name, icon, color: color, route: route);
 }
 
 class MyApp extends StatelessWidget {
@@ -38,7 +48,7 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> {
   Future<void> _loadUnits() async {
     _categories = [
-      Category('Length', NovaIcons.tools_measuring_tape,
+      BasicCategory('Length', NovaIcons.tools_measuring_tape,
         [
           Unit('meter', 'm', 0, 1, 0),
           Unit('inch', 'in', 0, 0.0254, 0),
@@ -51,7 +61,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.blue,
       ),
-      Category('Area', NovaIcons.vector_square_1,
+      BasicCategory('Area', NovaIcons.vector_square_1,
         [
           Unit('square meter', 'm²', 0, 1, 0),
           Unit('acre', 'ac', 0, 4046.8564224, 0),
@@ -63,17 +73,21 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.red,
       ),
-      Category('Volume', NovaIcons.box_2,
+      BasicCategory('Volume', NovaIcons.box_2,
         [
           Unit('cubic meter', 'm³', 0, 1, 0),
           Unit('cubic inch', 'in³', 0, 0.000016387, 0),
           Unit('teaspoon', 'tsp', 0, 0.000005, 0),
           Unit('liter', 'L', 0, 0.001, 0),
           Unit('lambda', 'λ', 0, 0.000000001, 0),
+          Unit('cup (metric)', 'c', 0, 0.0002500, 0),
+          Unit('pint (US fluid)', 'pt', 0, 0.000473176473, 0),
+          Unit('quart (US fluid)', 'qt', 0, 0.000946352946, 0),
+          Unit('gallon (US fluid)', 'gal', 0, 0.003785411784, 0),
         ],
         color: Colors.purple,
       ),
-      Category('Plane Angle', NovaIcons.vector_triangle,
+      BasicCategory('Plane Angle', NovaIcons.vector_triangle,
         [
           Unit('radian', 'rad', 0, 1, 0),
           Unit('degree', '°', 0, 0.017453293, 0),
@@ -85,7 +99,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.green,
       ),
-      Category('Solid Angle', NovaIcons.vector_triangle,
+      BasicCategory('Solid Angle', NovaIcons.vector_triangle,
         [
           Unit('steradian', 'sr', 0, 1, 0),
           Unit('square degree', 'deg²', 0, 0.00030462, 0),
@@ -93,7 +107,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.blueGrey,
       ),
-      Category('Temperature', NovaIcons.fire_lighter,
+      BasicCategory('Temperature', NovaIcons.fire_lighter,
         [
           Unit('kelvin', 'K', 0, 1, 0),
           Unit('Celsius', '°C', 0, 1, 273.15),
@@ -103,7 +117,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.pink,
       ),
-      Category('Force', NovaIcons.cursor_arrow_1,
+      BasicCategory('Force', NovaIcons.cursor_arrow_1,
         [
           Unit('newton', 'N', 0, 1, 0),
           Unit('pound-force', 'lbf', 0, 4.4482216152605, 0),
@@ -113,7 +127,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.orange,
       ),
-      Category('Speed', NovaIcons.video_control_fast_forward,
+      BasicCategory('Speed', NovaIcons.video_control_fast_forward,
         [
           Unit('meter per second', 'm/s', 0, 1, 0),
           Unit('knot', 'kn', 0, 0.514444444444, 0),
@@ -122,7 +136,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.lime,
       ),
-      Category('Time', NovaIcons.calendar_1,
+      BasicCategory('Time', NovaIcons.calendar_1,
         [
           Unit('Second', 's', 0, 1, 0),
           Unit('Minute', 'min', 0, 60, 0),
@@ -134,17 +148,17 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.amber,
       ),
-      Category('Acceleration', NovaIcons.video_control_fast_forward,
+      BasicCategory('Acceleration', NovaIcons.video_control_fast_forward,
         [
-          Unit('meter per second squared', 'm/s²', 0, 1, 0),
-          Unit('mile per hour per second', 'mph/s', 0, 0.44704, 0),
+          Unit('meter/second squared', 'm/s²', 0, 1, 0),
+          Unit('mile per hour/sec', 'mph/s', 0, 0.44704, 0),
           Unit('standard gravity', 'g₀', 0, 9.80665, 0),
-          Unit('foot per minute per second', 'fpm/s', 0, 0.00508, 0),
-          Unit('inch per minute per second', 'ipm/s', 0, 0.000423333333333, 0),
+          Unit('foot per minute/sec', 'fpm/s', 0, 0.00508, 0),
+          Unit('inch per minute/sec', 'ipm/s', 0, 0.000423333333333, 0),
         ],
         color: Colors.teal,
       ),
-      Category('Pressure', NovaIcons.water_droplet,
+      BasicCategory('Pressure', NovaIcons.water_droplet,
         [
           Unit('pascal', 'Pa', 0, 1, 0),
           Unit('atmosphere', 'atm', 0, 101325, 0),
@@ -156,7 +170,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.yellow,
       ),
-      Category('Torque', NovaIcons.synchronize_1,
+      BasicCategory('Torque', NovaIcons.synchronize_1,
         [
           Unit('Newton meter', 'N·m', 0, 1, 0),
           Unit('kilogram force-meter', 'kgf·m', 0, 9.80665, 0),
@@ -164,7 +178,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.grey,
       ),
-      Category('Energy', NovaIcons.sport_dumbbell_1,
+      BasicCategory('Energy', NovaIcons.sport_dumbbell_1,
         [
           Unit('joule', 'J', 0, 1, 0),
           Unit('electronvolt', 'eV', 0, 0.000000000000000000160217656535, 0),
@@ -177,7 +191,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.indigo,
       ),
-      Category('Power', NovaIcons.flash,
+      BasicCategory('Power', NovaIcons.flash,
         [
           Unit('watt', 'W', 0, 1, 0),
           Unit('horsepower (metric)', 'hp', 0, 735.49875, 0),
@@ -187,7 +201,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.pink,
       ),
-      Category('Dynamic Viscosity', NovaIcons.water_droplet,
+      BasicCategory('Dynamic Viscosity', NovaIcons.water_droplet,
         [
           Unit('pascal second', 'Pa·s', 0, 1, 0),
           Unit('pound per foot second', 'lb/(ft·s)', 0, 1.488164, 0),
@@ -195,7 +209,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.purple,
       ),
-      Category('Kinematic Viscosity', NovaIcons.water_droplet,
+      BasicCategory('Kinematic Viscosity', NovaIcons.water_droplet,
         [
           Unit('square meter per second', 'm²/s', 0, 1, 0),
           Unit('square foot per second', 'ft²/s', 0, 0.09290304, 0),
@@ -203,7 +217,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.teal,
       ),
-      Category('Current', NovaIcons.battery_charging_1,
+      BasicCategory('Current', NovaIcons.battery_charging_1,
         [
           Unit('ampere', 'A', 0, 1, 0),
           Unit('emu, abampere', 'abamp', 0, 10, 0),
@@ -211,7 +225,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.green,
       ),
-      Category('Charge', NovaIcons.cursor_arrow_1,
+      BasicCategory('Charge', NovaIcons.cursor_arrow_1,
         [
           Unit('coulomb', 'C', 0, 1, 0),
           Unit('faraday', 'F', 0, 96485.3383, 0),
@@ -220,7 +234,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.blue,
       ),
-      Category('Dipole', NovaIcons.synchronize_2,
+      BasicCategory('Dipole', NovaIcons.synchronize_2,
         [
           Unit('coulomb meter', 'C·m', 0, 1, 0),
           Unit('debye', 'D', 0, 0.000000000000000000000000000003335646, 0),
@@ -228,7 +242,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.lime,
       ),
-      Category('Electromotive Force', NovaIcons.sport_dumbbell_1,
+      BasicCategory('Electromotive Force', NovaIcons.sport_dumbbell_1,
         [
           Unit('volt', 'V', 0, 1, 0),
           Unit('statvolt', 'statV', 0, 299.792458, 0),
@@ -236,21 +250,21 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.red,
       ),
-      Category('Magnetic Flux', NovaIcons.synchronize_2,
+      BasicCategory('Magnetic Flux', NovaIcons.synchronize_2,
         [
           Unit('weber', 'Wb', 0, 1, 0),
           Unit('maxwell', 'Mx', 0, 0.00000001, 0),
         ],
         color: Colors.yellow,
       ),
-      Category('Magnetic Flux Density', NovaIcons.synchronize_2,
+      BasicCategory('Magnetic Flux Density', NovaIcons.synchronize_2,
         [
           Unit('tesla', 'T', 0, 1, 0),
           Unit('gauss', 'G', 0, 0.0001, 0),
         ],
         color: Colors.blueGrey,
       ),
-      Category('Flow', NovaIcons.cursor_arrow_1,
+      BasicCategory('Flow', NovaIcons.cursor_arrow_1,
         [
           Unit('cubic meter per second', 'm³/s', 0, 1, 0),
           Unit('gallon per minute', 'gal/min', 0, 0.0000630901964, 0),
@@ -259,7 +273,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.indigo,
       ),
-      Category('Luminous Intensity', NovaIcons.lamp_studio_1,
+      BasicCategory('Luminous Intensity', NovaIcons.lamp_studio_1,
         [
           Unit('candela', 'cd', 0, 1, 0),
           Unit('candlepower (new)', 'cp', 0, 1, 0),
@@ -267,7 +281,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.amber,
       ),
-      Category('Luminance', NovaIcons.lamp_studio_1,
+      BasicCategory('Luminance', NovaIcons.lamp_studio_1,
         [
           Unit('candela per square meter', 'cd/m²', 0, 1, 0),
           Unit('footlambert', 'fL', 0, 3.4262590996, 0),
@@ -276,7 +290,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.grey,
       ),
-      Category('Illuminance', NovaIcons.lamp_studio_1,
+      BasicCategory('Illuminance', NovaIcons.lamp_studio_1,
         [
           Unit('lux', 'lx', 0, 1, 0),
           Unit('phot', 'ph', 0, 10000, 0),
@@ -285,7 +299,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.blue,
       ),
-      Category('Radioactive Activity', NovaIcons.atomic_bomb,
+      BasicCategory('Radioactive Activity', NovaIcons.atomic_bomb,
         [
           Unit('becquerel', 'Bq', 0, 1, 0),
           Unit('curie', 'Ci', 0, 37000000000, 0),
@@ -293,21 +307,21 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.purple,
       ),
-      Category('Radiation Absorption', NovaIcons.atomic_bomb,
+      BasicCategory('Radiation Absorption', NovaIcons.atomic_bomb,
         [
           Unit('gray', 'Gy', 0, 1, 0),
           Unit('rad', 'rad', 0, 0.01, 0),
         ],
         color: Colors.green,
       ),
-      Category('Radiation Equivalent', NovaIcons.atomic_bomb,
+      BasicCategory('Radiation Equivalent', NovaIcons.atomic_bomb,
         [
           Unit('sievert', 'Sv', 0, 1, 0),
           Unit('Röntgen equivalent man', 'rem', 0, 0.01, 0),
         ],
         color: Colors.teal,
       ),
-      Category('Mass', NovaIcons.gold_nuggets,
+      BasicCategory('Mass', NovaIcons.gold_nuggets,
         [
           Unit('kilogram', 'kg', 0, 1, 0),
           Unit('gram', 'g', 0, 0.001, 0),
@@ -317,7 +331,7 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.red,
       ),
-      Category('Density', NovaIcons.gold_nuggets,
+      BasicCategory('Density', NovaIcons.gold_nuggets,
         [
           Unit('kilogram per cubic meter', 'kg/m³', 0, 1, 0),
           Unit('gram per milliliter', 'g/mL', 0, 1000, 0),
@@ -327,14 +341,14 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.lime,
       ),
-      Category('Frequency', NovaIcons.synchronize_1,
+      BasicCategory('Frequency', NovaIcons.synchronize_1,
         [
           Unit('hertz', 'Hz', 0, 1, 0),
           Unit('revolutions per minute', 'rpm', 0, 0.01666666666666667, 0),
         ],
         color: Colors.purple,
       ),
-      Category('Data', NovaIcons.cloud,
+      BasicCategory('Data', NovaIcons.cloud,
         [
           Unit('bit', 'b', 0, 1, 0),
           Unit('byte', 'B', 0, 8, 0),
@@ -351,27 +365,11 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.pink,
       ),
-      Category('Tip', NovaIcons.banking_spendings_1,
-        [
-          Unit('Initial Amount', '', 0, 1, 0),
-          Unit('8% tip', '', 0, 1/0.08, 0),
-          Unit('8% bill', '', 0, 1/1.08, 0),
-          Unit('10% tip', '', 0, 1/0.1, 0),
-          Unit('10% bill', '', 0, 1/1.1, 0),
-          Unit('12% tip', '', 0, 1/0.12, 0),
-          Unit('12% bill', '', 0, 1/1.12, 0),
-          Unit('15% tip', '', 0, 1/0.15, 0),
-          Unit('15% bill', '', 0, 1/1.15, 0),
-          Unit('18% tip', '', 0, 1/0.18, 0),
-          Unit('18% bill', '', 0, 1/1.18, 0),
-          Unit('20% tip', '', 0, 1/0.2, 0),
-          Unit('20% bill', '', 0, 1/1.2, 0),
-          Unit('25% tip', '', 0, 1/0.25, 0),
-          Unit('25% bill', '', 0, 1/1.25, 0),
-        ],
+      SpecialCategory('Tip', NovaIcons.banking_spendings_1,
+        MaterialPageRoute(builder: (context) => TipConversionView()),
         color: Colors.yellow,
       ),
-      Category('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
+      BasicCategory('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
         _lastCurrencyRequest.difference(DateTime.now()).inHours <= 6) ? _cachedCurrencyUnits :
       await _getCurrencyUnits(), color: Colors.amber,
       ),
@@ -385,14 +383,14 @@ class _MainViewState extends State<MainView> {
   static List<Unit> _cachedCurrencyUnits;
   static DateTime _lastCurrencyRequest;
 
-  Future<List<Category>> _readFavoriteCategories() async {
+  Future<List<BasicCategory>> _readFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if(prefs.getStringList('favorite-categories') == null){
       _saveFavoriteCategories();
-      return List<Category>();
+      return List<BasicCategory>();
     } else {
       List<int> ids = prefs.getStringList('favorite-categories').map((str) => int.parse(str)).toList();
-      List<Category> favorites = new List<Category>();
+      List<BasicCategory> favorites = new List<BasicCategory>();
       for (int id in ids) {
         favorites.add(_categories[id]);
       }
@@ -402,11 +400,11 @@ class _MainViewState extends State<MainView> {
 
   _saveFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> str_ids = List<String>();
+    List<String> strIds = List<String>();
     for(Category category in _favoriteCategories) {
-      str_ids.add(_categories.indexOf(category).toString());
+      strIds.add(_categories.indexOf(category).toString());
     }
-    prefs.setStringList('favorite-categories', str_ids);
+    prefs.setStringList('favorite-categories', strIds);
   }
 
   static Future<List<Unit>> _getCurrencyUnits() async {
@@ -450,7 +448,7 @@ class _MainViewState extends State<MainView> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ConversionView(category))
+            category.runtimeType == BasicCategory ? MaterialPageRoute(builder: (context) => ConversionView(category)) : category.route
           );
         },
         child: Padding(
@@ -485,6 +483,7 @@ class _MainViewState extends State<MainView> {
     } else if (_currentTab == 1) {
       return _favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
     }
+    return null;
   }
 
   void _onAppbarDropdownSelected(String value) {
