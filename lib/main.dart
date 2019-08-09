@@ -378,12 +378,12 @@ class _MainViewState extends State<MainView> {
   }
 
   int _currentTab = 0;
-  List<Category> _categories;
-  List<Category> _favoriteCategories;
+  static List<Category> _categories;
+  static List<Category> _favoriteCategories;
   static List<Unit> _cachedCurrencyUnits;
   static DateTime _lastCurrencyRequest;
 
-  Future<List<BasicCategory>> _readFavoriteCategories() async {
+  static Future<List<BasicCategory>> _readFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if(prefs.getStringList('favorite-categories') == null){
       _saveFavoriteCategories();
@@ -398,7 +398,7 @@ class _MainViewState extends State<MainView> {
     }
   }
 
-  _saveFavoriteCategories() async {
+  static _saveFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> strIds = List<String>();
     for(Category category in _favoriteCategories) {
@@ -431,7 +431,7 @@ class _MainViewState extends State<MainView> {
     );
   }
 
-  void _toggleFavoriteCategory(Category category) {
+  static void _toggleFavoriteCategory(Category category) {
     if(_favoriteCategories.contains(category)) _favoriteCategories.remove(category);
     else _favoriteCategories.add(category);
     _saveFavoriteCategories();
@@ -457,13 +457,7 @@ class _MainViewState extends State<MainView> {
             children: <Widget>[
               Align(
                 alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () {
-                    _toggleFavoriteCategory(category);
-                    setState(() {});
-                  },
-                  child: Icon(_favoriteCategories.contains(category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber),
-                ),
+                child: FavoriteButton(category),
               ),
               Icon(category.icon, color: category.color, size: 35.0),
               SizedBox(height: 6.0),
@@ -561,6 +555,7 @@ class _MainViewState extends State<MainView> {
                 slivers: <Widget>[
                   _buildTab(),
                 ],
+                key: PageStorageKey(_currentTab.toString()),
               );
             default: return null;
           }
@@ -584,6 +579,28 @@ class _MainViewState extends State<MainView> {
           });
         },
       ),
+    );
+  }
+}
+
+class FavoriteButton extends StatefulWidget {
+  final Category category;
+
+  FavoriteButton(this.category);
+
+  @override
+  _FavoriteButtonState createState() => _FavoriteButtonState();
+}
+
+class _FavoriteButtonState extends State<FavoriteButton> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        _MainViewState._toggleFavoriteCategory(widget.category);
+        setState(() {});
+      },
+      child: Icon(_MainViewState._favoriteCategories.contains(widget.category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber),
     );
   }
 }
