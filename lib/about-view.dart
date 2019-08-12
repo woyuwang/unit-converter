@@ -40,7 +40,7 @@ class _AboutViewState extends State<AboutView> {
             ),
             SizedBox(height: 16.0),
             Text(
-              'Version: Alpha 0.1.3c',
+              'Version: Alpha 0.1.4',
               style: TextStyle(
                 fontSize: 12.0,
               ),

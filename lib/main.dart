@@ -48,6 +48,14 @@ class MainView extends StatefulWidget {
 class _MainViewState extends State<MainView> {
   Future<void> _loadUnits() async {
     _categories = [
+      SpecialCategory('Tip', NovaIcons.banking_spendings_1,
+        MaterialPageRoute(builder: (context) => TipConversionView()),
+        color: Colors.yellow,
+      ),
+      BasicCategory('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
+        _lastCurrencyRequest.difference(DateTime.now()).inHours <= 6) ? _cachedCurrencyUnits :
+      await _getCurrencyUnits(), color: Colors.indigo,
+      ),
       BasicCategory('Length', NovaIcons.tools_measuring_tape,
         [
           Unit('meter', 'm', 0, 1, 0),
@@ -87,45 +95,15 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.purple,
       ),
-      BasicCategory('Plane Angle', NovaIcons.vector_triangle,
-        [
-          Unit('radian', 'rad', 0, 1, 0),
-          Unit('degree', '°', 0, 0.017453293, 0),
-          Unit('gradian', 'grad', 0, 0.015707963, 0),
-          Unit('quadrant', '', 0, 1.570796, 0),
-          Unit('octant', '', 0, 0.785398, 0),
-          Unit('sextant', '', 0, 1.047198, 0),
-          Unit('sign', '', 0, 0.523599, 0),
-        ],
-        color: Colors.green,
-      ),
-      BasicCategory('Solid Angle', NovaIcons.vector_triangle,
-        [
-          Unit('steradian', 'sr', 0, 1, 0),
-          Unit('square degree', 'deg²', 0, 0.00030462, 0),
-          Unit('spat', '', 0, 12.56637, 0),
-        ],
-        color: Colors.blueGrey,
-      ),
       BasicCategory('Temperature', NovaIcons.fire_lighter,
         [
-          Unit('kelvin', 'K', 0, 1, 0),
           Unit('Celsius', '°C', 0, 1, 273.15),
           Unit('Fahrenheit', '°F', 459.67, 5 / 9, 0),
+          Unit('kelvin', 'K', 0, 1, 0),
           Unit('Rankine', '°R;', 0, 5 / 9, 0),
           Unit('Delisle', '°De', 0, -2 / 3, 373.15),
         ],
         color: Colors.pink,
-      ),
-      BasicCategory('Force', NovaIcons.cursor_arrow_1,
-        [
-          Unit('newton', 'N', 0, 1, 0),
-          Unit('pound-force', 'lbf', 0, 4.4482216152605, 0),
-          Unit('ounce-force', 'ozf', 0, 0.27801385095378125, 0),
-          Unit('dyne', 'dyn', 0, 0.0001, 0),
-          Unit('kilogram-force', 'kgf', 0, 9.80665, 0),
-        ],
-        color: Colors.orange,
       ),
       BasicCategory('Speed', NovaIcons.video_control_fast_forward,
         [
@@ -147,6 +125,36 @@ class _MainViewState extends State<MainView> {
           Unit('Year', 'yr', 0, 31536000, 0),
         ],
         color: Colors.amber,
+      ),
+      BasicCategory('Plane Angle', NovaIcons.vector_triangle,
+        [
+          Unit('radian', 'rad', 0, 1, 0),
+          Unit('degree', '°', 0, 0.017453293, 0),
+          Unit('gradian', 'grad', 0, 0.015707963, 0),
+          Unit('quadrant', '', 0, 1.570796, 0),
+          Unit('octant', '', 0, 0.785398, 0),
+          Unit('sextant', '', 0, 1.047198, 0),
+          Unit('sign', '', 0, 0.523599, 0),
+        ],
+        color: Colors.green,
+      ),
+      BasicCategory('Solid Angle', NovaIcons.vector_triangle,
+        [
+          Unit('steradian', 'sr', 0, 1, 0),
+          Unit('square degree', 'deg²', 0, 0.00030462, 0),
+          Unit('spat', '', 0, 12.56637, 0),
+        ],
+        color: Colors.blueGrey,
+      ),
+      BasicCategory('Force', NovaIcons.cursor_arrow_1,
+        [
+          Unit('newton', 'N', 0, 1, 0),
+          Unit('pound-force', 'lbf', 0, 4.4482216152605, 0),
+          Unit('ounce-force', 'ozf', 0, 0.27801385095378125, 0),
+          Unit('dyne', 'dyn', 0, 0.0001, 0),
+          Unit('kilogram-force', 'kgf', 0, 9.80665, 0),
+        ],
+        color: Colors.orange,
       ),
       BasicCategory('Acceleration', NovaIcons.video_control_fast_forward,
         [
@@ -365,14 +373,6 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.pink,
       ),
-      SpecialCategory('Tip', NovaIcons.banking_spendings_1,
-        MaterialPageRoute(builder: (context) => TipConversionView()),
-        color: Colors.yellow,
-      ),
-      BasicCategory('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
-        _lastCurrencyRequest.difference(DateTime.now()).inHours <= 6) ? _cachedCurrencyUnits :
-      await _getCurrencyUnits(), color: Colors.amber,
-      ),
     ];
     _favoriteCategories = await _readFavoriteCategories();
   }
@@ -462,7 +462,7 @@ class _MainViewState extends State<MainView> {
               Icon(category.icon, color: category.color, size: 35.0),
               SizedBox(height: 6.0),
               Expanded(
-                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(color: category.color, fontSize: 13.0)),
+                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0)),
               ),
             ],
           ),
@@ -489,6 +489,7 @@ class _MainViewState extends State<MainView> {
     } else if (value == 'Clear Favorites') {
       _favoriteCategories = List<Category>();
       _saveFavoriteCategories();
+      setState(() {});
     }
   }
 

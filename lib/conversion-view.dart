@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'converter.dart';
 import 'main.dart';
 
@@ -19,15 +20,15 @@ class _ConversionViewState extends State<ConversionView> {
   @override
   void initState() {
     super.initState();
-
-    _setupUnits();
-    _setupInputControllers();
   }
 
-  void _setupUnits() {
+  Future<void> _setupUnits() async {
+    List<int> indices = await _readOrder();
     for(int i = 0; i < widget.category.units.length; i++) {
-      _units.add(widget.category.units[i]);
+      _units.add(widget.category.units[indices[i]]);
     }
+    _saveOrder();
+    _setupInputControllers();
   }
 
   void _setupInputControllers() {
@@ -48,6 +49,15 @@ class _ConversionViewState extends State<ConversionView> {
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _setupUnits(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return snapshot.connectionState == ConnectionState.done ? _buildBody() : SizedBox(height: 100.0, width: 100.0, child: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+
+  Widget _buildBody() {
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -60,7 +70,7 @@ class _ConversionViewState extends State<ConversionView> {
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
           itemCount: widget.category.units.length,
           itemBuilder: _buildListItem,
@@ -69,59 +79,97 @@ class _ConversionViewState extends State<ConversionView> {
     );
   }
 
+  void _swap(Unit unit, int index) {
+    int tempIndex = _units.indexOf(unit);
+    Unit temp = _units[index];
+    _units[index] = unit;
+    _units[tempIndex] = temp;
+    _saveOrder();
+  }
+
   Widget _buildListItem(BuildContext context, int index) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-        SizedBox(width: 8.0),
-        DropdownButton<Unit>(
-          value: _units[index],
-          onChanged: (unit) {
-            setState(() {
-              _units[index] = unit;
-              _updateValues(index);
-            });
-          },
-          items: widget.category.units.map((unit) {
-            return DropdownMenuItem<Unit>(
-              value: unit,
-              child: Text(
-                unit.name,
-                style: TextStyle(
-                  fontSize: 15.0,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            DropdownButton<Unit>(
+              value: _units[index],
+              onChanged: (unit) {
+                setState(() {
+                  _swap(unit, index);
+                  _updateValues(index);
+                });
+              },
+              items: widget.category.units.map((unit) {
+                return DropdownMenuItem<Unit>(
+                  value: unit,
+                  child: Text(
+                    unit.name,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            Row(
+              children: <Widget>[
+                Container(
+                  width: 200.0,
+                  child: TextField(
+                    controller: _inputControllers[index],
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Input a number',
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _updateValues(index);
+                      });
+                    },
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-        SizedBox(width: 4.0),
-        Container(
-          width: 80.0,
-          child: TextField(
-            controller: _inputControllers[index],
-            keyboardType: TextInputType.number,
-            style: TextStyle(
-              fontSize: 15.0,
+                SizedBox(width: 8.0),
+                Text(
+                  _units[index].symbol,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                  ),
+                ),
+              ],
             ),
-            decoration: InputDecoration(
-              hintText: 'Input a number',
-            ),
-            onChanged: (value) {
-              setState(() {
-                _updateValues(index);
-              });
-            },
-          ),
+          ],
         ),
-        SizedBox(width: 4.0),
-        Text(
-          widget.category.units[index].symbol,
-          style: TextStyle(
-            fontSize: 12.0,
-          ),
-        ),
-      ],
+      ),
     );
+  }
+
+  Future<List<int>> _readOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String key = widget.category.name + '-order';
+    if(prefs.getStringList(key) == null) {
+      List<int> res = List<int>();
+      for(int i = 0; i < widget.category.units.length; i++) res.add(i);
+      return res;
+    } else {
+      List<int> order = prefs.getStringList(key).map((str) => int.parse(str)).toList();
+      return order;
+    }
+  }
+
+  _saveOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String key = widget.category.name + '-order';
+    List<String> strList = List<String>();
+    for(Unit unit in _units) {
+      strList.add(widget.category.units.indexOf(unit).toString());
+    }
+    prefs.setStringList(key, strList);
   }
 
   void _updateValues(int index) {
