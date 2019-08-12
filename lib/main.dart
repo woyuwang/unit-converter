@@ -383,14 +383,14 @@ class _MainViewState extends State<MainView> {
   static List<Unit> _cachedCurrencyUnits;
   static DateTime _lastCurrencyRequest;
 
-  static Future<List<BasicCategory>> _readFavoriteCategories() async {
+  static Future<List<Category>> _readFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if(prefs.getStringList('favorite-categories') == null){
       _saveFavoriteCategories();
-      return List<BasicCategory>();
+      return List<Category>();
     } else {
       List<int> ids = prefs.getStringList('favorite-categories').map((str) => int.parse(str)).toList();
-      List<BasicCategory> favorites = new List<BasicCategory>();
+      List<Category> favorites = new List<Category>();
       for (int id in ids) {
         favorites.add(_categories[id]);
       }
