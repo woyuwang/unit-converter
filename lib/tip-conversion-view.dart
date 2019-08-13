@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:unit_converter/main.dart';
 import 'package:unit_converter/presentation/nova_icons.dart';
 
 class TipConversionView extends StatefulWidget {
@@ -50,6 +51,7 @@ class _TipConversionViewState extends State<TipConversionView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -78,6 +80,7 @@ class _TipConversionViewState extends State<TipConversionView> {
             'Amount: ',
             style: TextStyle(
               fontSize: 16.0,
+              color: Storage.darkMode ? Colors.white : Colors.black,
             ),
           ),
           Container(
@@ -87,6 +90,7 @@ class _TipConversionViewState extends State<TipConversionView> {
               keyboardType: TextInputType.number,
               style: TextStyle(
                 fontSize: 15.0,
+                color: Storage.darkMode ? Colors.white : Colors.black,
               ),
               onChanged: (value) {
                 setState(() {
@@ -111,7 +115,11 @@ class _TipConversionViewState extends State<TipConversionView> {
         Container(
           width: 50.0,
           child: TextField(
+            keyboardType: TextInputType.number,
             controller: _rates[index],
+            style: TextStyle(
+              color: Storage.darkMode ? Colors.white : Colors.black,
+            ),
             onChanged: (value) {
               setState(() {
                 _updateValues();
@@ -123,6 +131,7 @@ class _TipConversionViewState extends State<TipConversionView> {
           '%',
           style: TextStyle(
             fontSize: 15.0,
+            color: Storage.darkMode ? Colors.white : Colors.black,
           ),
         ),
         SizedBox(width: 16.0),
@@ -130,6 +139,7 @@ class _TipConversionViewState extends State<TipConversionView> {
           'Tip: ' + _tip[index],
           style: TextStyle(
             fontSize: 15.0,
+            color: Storage.darkMode ? Colors.white : Colors.black,
           ),
         ),
         SizedBox(width: 16.0),
@@ -137,6 +147,7 @@ class _TipConversionViewState extends State<TipConversionView> {
           'Total: ' + _total[index],
           style: TextStyle(
             fontSize: 15.0,
+            color: Storage.darkMode ? Colors.white : Colors.black,
           ),
         ),
       ],

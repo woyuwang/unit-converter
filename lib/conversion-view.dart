@@ -52,13 +52,14 @@ class _ConversionViewState extends State<ConversionView> {
     return FutureBuilder(
       future: _setupUnits(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return snapshot.connectionState == ConnectionState.done ? _buildBody() : SizedBox(height: 100.0, width: 100.0, child: Center(child: CircularProgressIndicator()));
+        return snapshot.connectionState == ConnectionState.done ? _buildBody() : Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
       },
     );
   }
 
   Widget _buildBody() {
     return Scaffold(
+      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -89,6 +90,13 @@ class _ConversionViewState extends State<ConversionView> {
 
   Widget _buildListItem(BuildContext context, int index) {
     return Card(
+      color: Storage.darkMode ? Colors.grey[600] : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        side: BorderSide(
+          color: Storage.darkMode ? Colors.grey[500] : Colors.transparent,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
         child: Column(
@@ -109,6 +117,7 @@ class _ConversionViewState extends State<ConversionView> {
                     unit.name,
                     style: TextStyle(
                       fontSize: 16.0,
+                      color: Storage.darkMode ? Colors.white : Colors.black,
                     ),
                   ),
                 );
@@ -123,6 +132,7 @@ class _ConversionViewState extends State<ConversionView> {
                     keyboardType: TextInputType.number,
                     style: TextStyle(
                       fontSize: 16.0,
+                      color: Storage.darkMode ? Colors.white : Colors.black,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Input a number',
@@ -139,6 +149,7 @@ class _ConversionViewState extends State<ConversionView> {
                   _units[index].symbol,
                   style: TextStyle(
                     fontSize: 16.0,
+                    color: Storage.darkMode ? Colors.white : Colors.black,
                   ),
                 ),
               ],

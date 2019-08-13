@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:unit_converter/settings-view.dart';
 import 'package:unit_converter/tip-conversion-view.dart';
 import 'about-view.dart';
 import 'conversion-view.dart';
@@ -40,14 +41,46 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class Storage {
+  static List<Category> categories;
+  static List<Category> favoriteCategories;
+  static bool darkMode = false;
+
+  static Future<List<Category>> readFavoriteCategories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if(prefs.getStringList('favorite-categories') == null){
+      saveFavoriteCategories();
+      return List<Category>();
+    } else {
+      List<int> ids = prefs.getStringList('favorite-categories').map((str) => int.parse(str)).toList();
+      List<Category> favorites = new List<Category>();
+      for (int id in ids) {
+        favorites.add(categories[id]);
+      }
+      return favorites;
+    }
+  }
+
+  static saveFavoriteCategories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> strIds = List<String>();
+    for(Category category in favoriteCategories) {
+      strIds.add(categories.indexOf(category).toString());
+    }
+    prefs.setStringList('favorite-categories', strIds);
+  }
+}
+
 class MainView extends StatefulWidget {
+
+
   @override
   _MainViewState createState() => _MainViewState();
 }
 
 class _MainViewState extends State<MainView> {
   Future<void> _loadUnits() async {
-    _categories = [
+    Storage.categories = [
       SpecialCategory('Tip', NovaIcons.banking_spendings_1,
         MaterialPageRoute(builder: (context) => TipConversionView()),
         color: Colors.yellow,
@@ -374,38 +407,12 @@ class _MainViewState extends State<MainView> {
         color: Colors.pink,
       ),
     ];
-    _favoriteCategories = await _readFavoriteCategories();
+    Storage.favoriteCategories = await Storage.readFavoriteCategories();
   }
 
   int _currentTab = 0;
-  static List<Category> _categories;
-  static List<Category> _favoriteCategories;
   static List<Unit> _cachedCurrencyUnits;
   static DateTime _lastCurrencyRequest;
-
-  static Future<List<Category>> _readFavoriteCategories() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if(prefs.getStringList('favorite-categories') == null){
-      _saveFavoriteCategories();
-      return List<Category>();
-    } else {
-      List<int> ids = prefs.getStringList('favorite-categories').map((str) => int.parse(str)).toList();
-      List<Category> favorites = new List<Category>();
-      for (int id in ids) {
-        favorites.add(_categories[id]);
-      }
-      return favorites;
-    }
-  }
-
-  static _saveFavoriteCategories() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> strIds = List<String>();
-    for(Category category in _favoriteCategories) {
-      strIds.add(_categories.indexOf(category).toString());
-    }
-    prefs.setStringList('favorite-categories', strIds);
-  }
 
   static Future<List<Unit>> _getCurrencyUnits() async {
     var url = 'https://api.exchangeratesapi.io/latest';
@@ -432,16 +439,20 @@ class _MainViewState extends State<MainView> {
   }
 
   static void _toggleFavoriteCategory(Category category) {
-    if(_favoriteCategories.contains(category)) _favoriteCategories.remove(category);
-    else _favoriteCategories.add(category);
-    _saveFavoriteCategories();
+    if(Storage.favoriteCategories.contains(category)) Storage.favoriteCategories.remove(category);
+    else Storage.favoriteCategories.add(category);
+    Storage.saveFavoriteCategories();
   }
 
   Widget _buildCategoryCard(Category category){
     return Card(
+      color: Storage.darkMode ? Colors.grey[600] : Colors.white,
       elevation: 2.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
+        side: BorderSide(
+          color: Storage.darkMode ? Colors.grey[500] : Colors.transparent,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
@@ -462,7 +473,7 @@ class _MainViewState extends State<MainView> {
               Icon(category.icon, color: category.color, size: 35.0),
               SizedBox(height: 6.0),
               Expanded(
-                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0)),
+                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0, color: Storage.darkMode ? Colors.white : Colors.black)),
               ),
             ],
           ),
@@ -473,9 +484,9 @@ class _MainViewState extends State<MainView> {
 
   List<Widget> _buildCategories() {
     if(_currentTab == 0) {
-      return _categories.map((category) => _buildCategoryCard(category)).toList();
+      return Storage.categories.map((category) => _buildCategoryCard(category)).toList();
     } else if (_currentTab == 1) {
-      return _favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
+      return Storage.favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
     }
     return null;
   }
@@ -486,16 +497,18 @@ class _MainViewState extends State<MainView> {
         context,
         MaterialPageRoute(builder: (context) => AboutView())
       );
-    } else if (value == 'Clear Favorites') {
-      _favoriteCategories = List<Category>();
-      _saveFavoriteCategories();
-      setState(() {});
+    } else if(value == 'Settings') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SettingsView())
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Text('Unit Converter Alpha'),
         actions: <Widget>[
@@ -509,11 +522,6 @@ class _MainViewState extends State<MainView> {
               PopupMenuItem(
                 value: 'Settings',
                 child: Text('Settings'),
-                enabled: false,
-              ),
-              PopupMenuItem(
-                value: 'Clear Favorites',
-                child: Text('Clear Favorites'),
               ),
             ],
           ),
@@ -534,14 +542,7 @@ class _MainViewState extends State<MainView> {
               );
             case ConnectionState.active:
             case ConnectionState.waiting:
-            return Center(
-              child: Text(
-                'Loading...',
-                style: TextStyle(
-                  fontSize: 30.0,
-                ),
-              ),
-            );
+            return Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
             case ConnectionState.done:
               if (snapshot.hasError)
                 return Center(
@@ -563,6 +564,8 @@ class _MainViewState extends State<MainView> {
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
+        unselectedItemColor: Storage.darkMode ? Colors.grey[500] : Colors.black,
         items: [
           BottomNavigationBarItem(
             icon: Icon(NovaIcons.pencil_ruler),
@@ -601,7 +604,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
         _MainViewState._toggleFavoriteCategory(widget.category);
         setState(() {});
       },
-      child: Icon(_MainViewState._favoriteCategories.contains(widget.category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber),
+      child: Icon(Storage.favoriteCategories.contains(widget.category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber),
     );
   }
 }
