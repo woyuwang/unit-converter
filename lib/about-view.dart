@@ -5,7 +5,6 @@ class AboutView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Text('About'),
       ),
@@ -19,7 +18,6 @@ class AboutView extends StatelessWidget {
               'Unit Converter',
               style: TextStyle(
                 fontSize: 24.0,
-                color: Storage.darkMode ? Colors.white : Colors.black,
               ),
             ),
             SizedBox(height: 12.0),
@@ -27,7 +25,6 @@ class AboutView extends StatelessWidget {
               'A handy app for all your conversion needs!',
               style: TextStyle(
                 fontSize: 16.0,
-                color: Storage.darkMode ? Colors.white : Colors.black,
               ),
             ),
             SizedBox(height: 8.0),
@@ -35,7 +32,6 @@ class AboutView extends StatelessWidget {
               'This is an app made from Dart and Flutter to support you in your quest to convert one unit to another.',
               style: TextStyle(
                 fontSize: 16.0,
-                color: Storage.darkMode ? Colors.white : Colors.black,
               ),
             ),
             SizedBox(height: 16.0),
@@ -43,7 +39,6 @@ class AboutView extends StatelessWidget {
               'Version: Alpha 0.1.5',
               style: TextStyle(
                 fontSize: 12.0,
-                color: Storage.darkMode ? Colors.white : Colors.black,
               ),
             ),
           ],

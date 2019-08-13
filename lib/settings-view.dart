@@ -10,7 +10,6 @@ class _SettingsViewState extends State<SettingsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Text('Settings'),
       ),
@@ -21,13 +20,7 @@ class _SettingsViewState extends State<SettingsView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             FlatButton(
-              child: Row(
-                children: <Widget>[
-                  Icon(Icons.clear_all, color: Storage.darkMode ? Colors.white : Colors.black),
-                  SizedBox(width: 8.0),
-                  Text('Clear Favorites', style: TextStyle(color: Storage.darkMode ? Colors.white : Colors.black)),
-                ],
-              ),
+              child: Text('Clear Favorites'),
               onPressed: () {
                 Storage.favoriteCategories = List<Category>();
                 Storage.saveFavoriteCategories();
@@ -38,12 +31,11 @@ class _SettingsViewState extends State<SettingsView> {
                 Switch(
                   value: Storage.darkMode,
                   onChanged: (value) {
-                    setState(() {
-                      Storage.darkMode = value;
-                    });
+                    Storage.darkMode = value;
+                    runApp(MyApp());
                   },
                 ),
-                Text('Dark Mode', style: TextStyle(color: Storage.darkMode ? Colors.white : Colors.black)),
+                Text('Dark Mode'),
               ],
             ),
           ],

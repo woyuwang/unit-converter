@@ -35,6 +35,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(
         primarySwatch: Colors.purple,
+        primaryColorDark: Colors.deepPurple,
+        accentColor: Colors.purpleAccent,
+        toggleableActiveColor: Colors.purpleAccent,
+        brightness: Storage.darkMode ? Brightness.dark : Brightness.light,
       ),
       home: MainView(),
     );
@@ -446,13 +450,9 @@ class _MainViewState extends State<MainView> {
 
   Widget _buildCategoryCard(Category category){
     return Card(
-      color: Storage.darkMode ? Colors.grey[600] : Colors.white,
       elevation: 2.0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
-        side: BorderSide(
-          color: Storage.darkMode ? Colors.grey[500] : Colors.transparent,
-        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(8.0),
@@ -473,7 +473,7 @@ class _MainViewState extends State<MainView> {
               Icon(category.icon, color: category.color, size: 35.0),
               SizedBox(height: 6.0),
               Expanded(
-                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0, color: Storage.darkMode ? Colors.white : Colors.black)),
+                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0)),
               ),
             ],
           ),
@@ -508,7 +508,6 @@ class _MainViewState extends State<MainView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Text('Unit Converter Alpha'),
         actions: <Widget>[
@@ -564,8 +563,6 @@ class _MainViewState extends State<MainView> {
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
-        unselectedItemColor: Storage.darkMode ? Colors.grey[500] : Colors.black,
         items: [
           BottomNavigationBarItem(
             icon: Icon(NovaIcons.pencil_ruler),

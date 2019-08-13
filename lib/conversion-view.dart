@@ -59,7 +59,6 @@ class _ConversionViewState extends State<ConversionView> {
 
   Widget _buildBody() {
     return Scaffold(
-      backgroundColor: Storage.darkMode ? Colors.grey[800] : Colors.white,
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -90,12 +89,8 @@ class _ConversionViewState extends State<ConversionView> {
 
   Widget _buildListItem(BuildContext context, int index) {
     return Card(
-      color: Storage.darkMode ? Colors.grey[600] : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
-        side: BorderSide(
-          color: Storage.darkMode ? Colors.grey[500] : Colors.transparent,
-        ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
@@ -117,7 +112,6 @@ class _ConversionViewState extends State<ConversionView> {
                     unit.name,
                     style: TextStyle(
                       fontSize: 16.0,
-                      color: Storage.darkMode ? Colors.white : Colors.black,
                     ),
                   ),
                 );
@@ -132,7 +126,6 @@ class _ConversionViewState extends State<ConversionView> {
                     keyboardType: TextInputType.number,
                     style: TextStyle(
                       fontSize: 16.0,
-                      color: Storage.darkMode ? Colors.white : Colors.black,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Input a number',
@@ -149,7 +142,6 @@ class _ConversionViewState extends State<ConversionView> {
                   _units[index].symbol,
                   style: TextStyle(
                     fontSize: 16.0,
-                    color: Storage.darkMode ? Colors.white : Colors.black,
                   ),
                 ),
               ],
