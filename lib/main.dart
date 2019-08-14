@@ -9,7 +9,10 @@ import 'presentation/nova_icons.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-void main() => runApp(MyApp());
+void main() async {
+  await Storage.readDarkMode();
+  runApp(MyApp());
+}
 
 abstract class Category {
   final String name;
@@ -38,6 +41,8 @@ class MyApp extends StatelessWidget {
         primaryColorDark: Colors.deepPurple,
         accentColor: Colors.purpleAccent,
         toggleableActiveColor: Colors.purpleAccent,
+        cursorColor: Colors.deepPurple,
+        textSelectionHandleColor: Colors.deepPurpleAccent,
         brightness: Storage.darkMode ? Brightness.dark : Brightness.light,
       ),
       home: MainView(),
@@ -48,7 +53,7 @@ class MyApp extends StatelessWidget {
 class Storage {
   static List<Category> categories;
   static List<Category> favoriteCategories;
-  static bool darkMode = false;
+  static bool darkMode;
 
   static Future<List<Category>> readFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -73,6 +78,23 @@ class Storage {
     }
     prefs.setStringList('favorite-categories', strIds);
   }
+
+  static readDarkMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    darkMode = prefs.getBool('dark-mode');
+    if(darkMode == null) darkMode = false;
+    saveDarkMode();
+  }
+
+  static saveDarkMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('dark-mode', darkMode);
+  }
+
+  static setDarkMode(bool value) async {
+    darkMode = value;
+    await saveDarkMode();
+  }
 }
 
 class MainView extends StatefulWidget {
@@ -83,7 +105,7 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  Future<void> _loadUnits() async {
+  Future<void> _initialize() async {
     Storage.categories = [
       SpecialCategory('Tip', NovaIcons.banking_spendings_1,
         MaterialPageRoute(builder: (context) => TipConversionView()),
@@ -91,7 +113,7 @@ class _MainViewState extends State<MainView> {
       ),
       BasicCategory('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
         _lastCurrencyRequest.difference(DateTime.now()).inHours <= 6) ? _cachedCurrencyUnits :
-      await _getCurrencyUnits(), color: Colors.indigo,
+        await _getCurrencyUnits(), color: Colors.indigo,
       ),
       BasicCategory('Length', NovaIcons.tools_measuring_tape,
         [
@@ -410,6 +432,14 @@ class _MainViewState extends State<MainView> {
         ],
         color: Colors.pink,
       ),
+      BasicCategory('Permeability', NovaIcons.vector_square_1,
+        [
+          Unit('m²', 'm²', 0, 1, 0),
+          Unit('darcy', 'd', 0, 0.0000000000009869233, 0),
+          Unit('millidarcy', 'md', 0, 0.0000000000000009869233, 0),
+        ],
+        color: Colors.blue,
+      ),
     ];
     Storage.favoriteCategories = await Storage.readFavoriteCategories();
   }
@@ -509,7 +539,7 @@ class _MainViewState extends State<MainView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Unit Converter Alpha'),
+        title: Text('Unit Converter'),
         actions: <Widget>[
           PopupMenuButton<String>(
             onSelected: _onAppbarDropdownSelected,
@@ -527,7 +557,7 @@ class _MainViewState extends State<MainView> {
         ],
       ),
       body: FutureBuilder(
-        future: _loadUnits(),
+        future: _initialize(),
         builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.none:

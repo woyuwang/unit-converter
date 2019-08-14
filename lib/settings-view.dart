@@ -31,7 +31,7 @@ class _SettingsViewState extends State<SettingsView> {
                 Switch(
                   value: Storage.darkMode,
                   onChanged: (value) {
-                    Storage.darkMode = value;
+                    Storage.setDarkMode(value);
                     runApp(MyApp());
                   },
                 ),

@@ -16,10 +16,17 @@ class ConversionView extends StatefulWidget {
 class _ConversionViewState extends State<ConversionView> {
   List<Unit> _units = List<Unit>();
   List<TextEditingController> _inputControllers = List<TextEditingController>();
+  Future<void> _cachedFuture;
 
   @override
   void initState() {
+    _cachedFuture = _setup();
     super.initState();
+  }
+
+  Future<void> _setup() async {
+    await _setupUnits();
+    _setupInputControllers();
   }
 
   Future<void> _setupUnits() async {
@@ -28,7 +35,6 @@ class _ConversionViewState extends State<ConversionView> {
       _units.add(widget.category.units[indices[i]]);
     }
     _saveOrder();
-    _setupInputControllers();
   }
 
   void _setupInputControllers() {
@@ -50,7 +56,7 @@ class _ConversionViewState extends State<ConversionView> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: _setupUnits(),
+      future: _cachedFuture,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         return snapshot.connectionState == ConnectionState.done ? _buildBody() : Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
       },
@@ -59,6 +65,7 @@ class _ConversionViewState extends State<ConversionView> {
 
   Widget _buildBody() {
     return Scaffold(
+      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
