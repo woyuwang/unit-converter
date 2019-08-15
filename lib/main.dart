@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unit_converter/settings-view.dart';
@@ -98,8 +99,6 @@ class Storage {
 }
 
 class MainView extends StatefulWidget {
-
-
   @override
   _MainViewState createState() => _MainViewState();
 }
@@ -465,10 +464,12 @@ class _MainViewState extends State<MainView> {
   }
 
   Widget _buildTab() {
-    return SliverGrid.count(
-      crossAxisCount: 3,
-      childAspectRatio: 1,
-      children: _buildCategories(),
+    return Center(
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        direction: Axis.horizontal,
+        children: _buildCategories(),
+      ),
     );
   }
 
@@ -479,33 +480,37 @@ class _MainViewState extends State<MainView> {
   }
 
   Widget _buildCategoryCard(Category category){
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8.0),
-        onTap: () {
-          Navigator.push(
-            context,
-            category.runtimeType == BasicCategory ? MaterialPageRoute(builder: (context) => ConversionView(category)) : category.route
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Align(
-                alignment: Alignment.topRight,
-                child: FavoriteButton(category),
-              ),
-              Icon(category.icon, color: category.color, size: 35.0),
-              SizedBox(height: 6.0),
-              Expanded(
-                child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0)),
-              ),
-            ],
+    return Container(
+      width: 120.0,
+      height: 120.0,
+      child: Card(
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8.0),
+          onTap: () {
+            Navigator.push(
+              context,
+              category.runtimeType == BasicCategory ? MaterialPageRoute(builder: (context) => ConversionView(category)) : category.route
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: <Widget>[
+                Align(
+                  alignment: Alignment.topRight,
+                  child: FavoriteButton(category),
+                ),
+                Icon(category.icon, color: category.color, size: 35.0),
+                SizedBox(height: 6.0),
+                Expanded(
+                  child: Text(category.name, textAlign: TextAlign.center, style: TextStyle(fontSize: 13.0)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -516,7 +521,13 @@ class _MainViewState extends State<MainView> {
     if(_currentTab == 0) {
       return Storage.categories.map((category) => _buildCategoryCard(category)).toList();
     } else if (_currentTab == 1) {
-      return Storage.favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
+      List<Widget> res = Storage.favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
+      if(res.length == 0) {
+        return [Padding(
+          padding: const EdgeInsets.all(64.0),
+          child: Text('Nothing in here yet! :)', style: TextStyle(fontSize: 20.0)),
+        )];
+      } else return res;
     }
     return null;
   }
@@ -582,10 +593,8 @@ class _MainViewState extends State<MainView> {
                     ),
                   ),
                 );
-              return CustomScrollView(
-                slivers: <Widget>[
-                  _buildTab(),
-                ],
+              return SingleChildScrollView(
+                child: _buildTab(),
                 key: PageStorageKey(_currentTab.toString()),
               );
             default: return null;
@@ -631,7 +640,7 @@ class _FavoriteButtonState extends State<FavoriteButton> {
         _MainViewState._toggleFavoriteCategory(widget.category);
         setState(() {});
       },
-      child: Icon(Storage.favoriteCategories.contains(widget.category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber),
+      child: Tooltip(child: Icon(Storage.favoriteCategories.contains(widget.category) ? Icons.star : Icons.star_border, size: 25.0, color: Colors.amber), message: 'Favorite'),
     );
   }
 }
