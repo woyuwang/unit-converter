@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:unit_converter/main.dart';
 
 class AboutView extends StatelessWidget {
   @override
@@ -36,7 +35,7 @@ class AboutView extends StatelessWidget {
             ),
             SizedBox(height: 16.0),
             Text(
-              'Version: 0.1.6',
+              'Version: 0.1.7',
               style: TextStyle(
                 fontSize: 12.0,
               ),

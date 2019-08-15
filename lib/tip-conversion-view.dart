@@ -2,7 +2,6 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:unit_converter/main.dart';
 import 'package:unit_converter/presentation/nova_icons.dart';
 
 class TipConversionView extends StatefulWidget {

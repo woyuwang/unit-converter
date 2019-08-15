@@ -9,6 +9,7 @@ import 'converter.dart';
 import 'presentation/nova_icons.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:reorderables/reorderables.dart';
 
 void main() async {
   await Storage.readDarkMode();
@@ -55,6 +56,8 @@ class Storage {
   static List<Category> categories;
   static List<Category> favoriteCategories;
   static bool darkMode;
+  static List<int> convertersOrder;
+  static List<int> favoritesOrder;
 
   static Future<List<Category>> readFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -95,6 +98,52 @@ class Storage {
   static setDarkMode(bool value) async {
     darkMode = value;
     await saveDarkMode();
+  }
+
+  static Future<List<int>> readConvertersOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> order = prefs.getStringList('converters');
+    List<int> res = List<int>();
+    if(order == null) {
+      for(int i = 0; i < categories.length; i++) {res.add(i);}
+      convertersOrder = res;
+      saveConvertersOrder();
+    } else {
+      for(int i = 0; i < order.length; i++) {res.add(int.tryParse(order[i]));}
+    }
+    return res;
+  }
+
+  static saveConvertersOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> order = List<String>();
+    for(int i = 0; i < convertersOrder.length; i++) {
+      order.add(convertersOrder[i].toString());
+    }
+    prefs.setStringList('converters', order);
+  }
+
+  static Future<List<int>> readFavoritesOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> order = prefs.getStringList('favorites');
+    List<int> res = List<int>();
+    if(order == null || order.length != favoriteCategories.length) {
+      for(int i = 0; i < favoriteCategories.length; i++) {res.add(i);}
+      favoritesOrder = res;
+      saveFavoritesOrder();
+    } else {
+      for(int i = 0; i < order.length; i++) {res.add(int.tryParse(order[i]));}
+    }
+    return res;
+  }
+
+  static saveFavoritesOrder() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> order = List<String>();
+    for(int i = 0; i < favoritesOrder.length; i++) {
+      order.add(favoritesOrder[i].toString());
+    }
+    prefs.setStringList('favorites', order);
   }
 }
 
@@ -441,6 +490,8 @@ class _MainViewState extends State<MainView> {
       ),
     ];
     Storage.favoriteCategories = await Storage.readFavoriteCategories();
+    Storage.convertersOrder = await Storage.readConvertersOrder();
+    Storage.favoritesOrder = await Storage.readFavoritesOrder();
   }
 
   int _currentTab = 0;
@@ -465,12 +516,26 @@ class _MainViewState extends State<MainView> {
 
   Widget _buildTab() {
     return Center(
-      child: Wrap(
+      child: ReorderableWrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         direction: Axis.horizontal,
         children: _buildCategories(),
+        onReorder: _reorderCategories,
       ),
     );
+  }
+
+  void _reorderCategories(int oldIndex, int newIndex) {
+    if(_currentTab == 0) {
+      int i = Storage.convertersOrder.removeAt(oldIndex);
+      Storage.convertersOrder.insert(newIndex, i);
+      Storage.saveConvertersOrder();
+    } else {
+      int i = Storage.favoritesOrder.removeAt(oldIndex);
+      Storage.favoritesOrder.insert(newIndex, i);
+      Storage.saveFavoritesOrder();
+    }
+    setState(() {});
   }
 
   static void _toggleFavoriteCategory(Category category) {
@@ -519,14 +584,18 @@ class _MainViewState extends State<MainView> {
 
   List<Widget> _buildCategories() {
     if(_currentTab == 0) {
-      return Storage.categories.map((category) => _buildCategoryCard(category)).toList();
+      List<Widget> res = List<Widget>();
+      for(int i = 0; i < Storage.convertersOrder.length; i++) {
+        res.add(_buildCategoryCard(Storage.categories[Storage.convertersOrder[i]]));
+      }
+      return res;
     } else if (_currentTab == 1) {
-      List<Widget> res = Storage.favoriteCategories.map((category) => _buildCategoryCard(category)).toList();
+      List<Widget> res = List<Widget>();
+      for(int i = 0; i < Storage.favoritesOrder.length; i++) {
+        res.add(_buildCategoryCard(Storage.favoriteCategories[Storage.favoritesOrder[i]]));
+      }
       if(res.length == 0) {
-        return [Padding(
-          padding: const EdgeInsets.all(64.0),
-          child: Text('Nothing in here yet! :)', style: TextStyle(fontSize: 20.0)),
-        )];
+        return [Padding(padding: const EdgeInsets.all(64.0), child: Text('Nothing in here yet! :)', style: TextStyle(fontSize: 20.0)))];
       } else return res;
     }
     return null;
@@ -543,6 +612,11 @@ class _MainViewState extends State<MainView> {
         context,
         MaterialPageRoute(builder: (context) => SettingsView())
       );
+    } else if(value == 'DebugPrint') {
+      print(Storage.convertersOrder);
+      print(Storage.favoritesOrder);
+      print(Storage.favoriteCategories);
+      print(_currentTab);
     }
   }
 
@@ -562,6 +636,10 @@ class _MainViewState extends State<MainView> {
               PopupMenuItem(
                 value: 'Settings',
                 child: Text('Settings'),
+              ),
+              PopupMenuItem(
+                value: 'DebugPrint',
+                child: Text('DebugPrint'),
               ),
             ],
           ),
