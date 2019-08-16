@@ -612,11 +612,6 @@ class _MainViewState extends State<MainView> {
         context,
         MaterialPageRoute(builder: (context) => SettingsView())
       );
-    } else if(value == 'DebugPrint') {
-      print(Storage.convertersOrder);
-      print(Storage.favoritesOrder);
-      print(Storage.favoriteCategories);
-      print(_currentTab);
     }
   }
 
@@ -636,10 +631,6 @@ class _MainViewState extends State<MainView> {
               PopupMenuItem(
                 value: 'Settings',
                 child: Text('Settings'),
-              ),
-              PopupMenuItem(
-                value: 'DebugPrint',
-                child: Text('DebugPrint'),
               ),
             ],
           ),
