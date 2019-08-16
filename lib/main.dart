@@ -505,9 +505,9 @@ class _MainViewState extends State<MainView> {
     print('currencies loaded');
     List<Unit> res = List<Unit>();
     res.add(Unit(decoded['base'], decoded['base'], 0, 1 ,0));
-    var _map = decoded['rates'];
-    for(int i = 0; i < _map.length; i++) {
-      res.add(Unit(_map.keys.toList()[i], _map.keys.toList()[i], 0, 1/_map.values.toList()[i], 0));
+    var map = decoded['rates'];
+    for(int i = 0; i < map.length; i++) {
+      res.add(Unit(map.keys.toList()[i], map.keys.toList()[i], 0, 1/map.values.toList()[i], 0));
     }
     _cachedCurrencyUnits = res;
     _lastCurrencyRequest = DateTime.tryParse(decoded['date']);
@@ -662,7 +662,7 @@ class _MainViewState extends State<MainView> {
                     ),
                   ),
                 );
-              return SingleChildScrollView(
+              return Container(
                 child: _buildTab(),
                 key: PageStorageKey(_currentTab.toString()),
               );
