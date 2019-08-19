@@ -16,6 +16,7 @@ class ConversionView extends StatefulWidget {
 class _ConversionViewState extends State<ConversionView> {
   List<Unit> _units = List<Unit>();
   List<TextEditingController> _inputControllers = List<TextEditingController>();
+  List<FocusNode> _focusNodes = List<FocusNode>();
   Future<void> _cachedFuture;
 
   @override
@@ -27,6 +28,7 @@ class _ConversionViewState extends State<ConversionView> {
   Future<void> _setup() async {
     await _setupUnits();
     _setupInputControllers();
+    _setupFocusNodes();
   }
 
   Future<void> _setupUnits() async {
@@ -46,9 +48,23 @@ class _ConversionViewState extends State<ConversionView> {
     }
   }
 
+  void _setupFocusNodes() {
+    for(int i = 0; i < widget.category.units.length; i++) {
+      _focusNodes.add(FocusNode());
+      _focusNodes[i].addListener(() {
+        if(_focusNodes[i].hasFocus) {
+          _inputControllers[i].selection = TextSelection(baseOffset: 0, extentOffset: _inputControllers[i].text.length);
+        }
+      });
+    }
+  }
+
   void dispose() {
     for(int i = 0; i < _inputControllers.length; i++) {
       _inputControllers[i].dispose();
+    }
+    for(int i = 0; i < _focusNodes.length; i++) {
+      _focusNodes[i].dispose();
     }
     super.dispose();
   }
@@ -130,6 +146,7 @@ class _ConversionViewState extends State<ConversionView> {
                   width: 200.0,
                   child: TextField(
                     controller: _inputControllers[index],
+                    focusNode: _focusNodes[index],
                     keyboardType: TextInputType.number,
                     style: TextStyle(
                       fontSize: 16.0,

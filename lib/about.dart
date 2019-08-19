@@ -35,7 +35,7 @@ class AboutView extends StatelessWidget {
             ),
             SizedBox(height: 16.0),
             Text(
-              'Version: 0.1.8b',
+              'Version: 0.1.9',
               style: TextStyle(
                 fontSize: 12.0,
               ),

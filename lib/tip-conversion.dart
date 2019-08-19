@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unit_converter/presentation/nova_icons.dart';
 
 class TipConversionView extends StatefulWidget {
@@ -11,19 +12,29 @@ class TipConversionView extends StatefulWidget {
 
 class _TipConversionViewState extends State<TipConversionView> {
   TextEditingController _amount = TextEditingController();
-  List<double> _percentages = [
-    5.0, 8.0, 10.0, 12.0, 15.0, 18.0, 20.0, 25.0, 30.0,
-  ];
+  List<double> _percentages;
   List<TextEditingController> _rates = List<TextEditingController>();
+  List<FocusNode> _focusNodes = List<FocusNode>();
   List<String> _tip = List<String>();
   List<String> _total = List<String>();
+  Future<void> _cachedFuture;
 
   @override
   void initState() {
+    _cachedFuture = _setup();
     super.initState();
+  }
 
+  Future<void> _setup() async {
+    await _setupPercentages();
     _setupInputControllers();
+    _setupFocusNodes();
     _setupValues();
+  }
+
+  Future<void> _setupPercentages() async {
+    _percentages = await _readPercentages();
+    _savePercentages();
   }
 
   void _setupValues() {
@@ -39,16 +50,61 @@ class _TipConversionViewState extends State<TipConversionView> {
     }
   }
 
+  void _setupFocusNodes() {
+    for(int i = 0; i < _percentages.length; i++) {
+      _focusNodes.add(FocusNode());
+      _focusNodes[i].addListener(() {
+        if(_focusNodes[i].hasFocus) {
+          _rates[i].selection = TextSelection(baseOffset: 0, extentOffset: _rates[i].text.length);
+        }
+      });
+    }
+  }
+
   void dispose() {
     _amount.dispose();
     for(int i = 0; i < _rates.length; i++) {
       _rates[i].dispose();
     }
+    for(int i = 0; i < _focusNodes.length; i++) {
+      _focusNodes[i].dispose();
+    }
     super.dispose();
+  }
+
+  Future<List<double>> _readPercentages() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String key = 'tip-order';
+    if(prefs.getStringList(key).length == 0 || prefs.getStringList(key) == null) {
+      List<double> res = [5.0, 8.0, 10.0, 12.0, 15.0, 18.0, 20.0, 25.0, 30.0];
+      return res;
+    } else {
+      List<double> order = prefs.getStringList(key).map((str) => double.parse(str)).toList();
+      return order;
+    }
+  }
+
+  _savePercentages() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String key = 'tip-order';
+    List<String> strList = List<String>();
+    for(TextEditingController p in _rates) {
+      strList.add(p.text);
+    }
+    prefs.setStringList(key, strList);
   }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _cachedFuture,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return snapshot.connectionState == ConnectionState.done ? _buildBody() : Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
+      },
+    );
+  }
+
+  Widget _buildBody() {
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -113,8 +169,10 @@ class _TipConversionViewState extends State<TipConversionView> {
           child: TextField(
             keyboardType: TextInputType.number,
             controller: _rates[index],
+            focusNode: _focusNodes[index],
             onChanged: (value) {
               setState(() {
+                _savePercentages();
                 _updateValues();
               });
             },

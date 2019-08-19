@@ -1,4 +1,4 @@
-package io.atomos.unit_converter
+package io.atomos.uc
 
 import android.os.Bundle
 
