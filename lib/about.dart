@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:yaml/yaml.dart';
 
 class AboutView extends StatelessWidget {
   @override
@@ -34,11 +37,18 @@ class AboutView extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16.0),
-            Text(
-              'Version: 0.1.9',
-              style: TextStyle(
-                fontSize: 12.0,
-              ),
+            FutureBuilder(
+              future: File('../pubspec.yaml').readAsString(),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if(snapshot.hasData) {
+                  return Text(
+                    loadYaml(snapshot.data)['version'].toString(),
+                    style: TextStyle(
+                      fontSize: 12.0,
+                    ),
+                  );
+                } else return Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
+              },
             ),
           ],
         ),
