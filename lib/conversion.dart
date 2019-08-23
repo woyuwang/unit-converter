@@ -26,9 +26,16 @@ class _ConversionViewState extends State<ConversionView> {
   }
 
   Future<void> _setup() async {
+    await _loadIfNecessary();
     await _setupUnits();
     _setupInputControllers();
     _setupFocusNodes();
+  }
+
+  Future<void> _loadIfNecessary() async {
+    if(widget.category.name == 'Currency') {
+      widget.category.units = await Storage.loadCurrency();
+    }
   }
 
   Future<void> _setupUnits() async {
@@ -179,7 +186,7 @@ class _ConversionViewState extends State<ConversionView> {
   Future<List<int>> _readOrder() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String key = widget.category.name + '-order';
-    if(prefs.getStringList(key) == null) {
+    if(prefs.getStringList(key) == null || prefs.getStringList(key).length == 0) {
       List<int> res = List<int>();
       for(int i = 0; i < widget.category.units.length; i++) res.add(i);
       return res;

@@ -74,24 +74,22 @@ class _TipConversionViewState extends State<TipConversionView> {
 
   Future<List<double>> _readPercentages() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String key = 'tip-order';
-    if(prefs.getStringList(key).length == 0 || prefs.getStringList(key) == null) {
+    if(prefs.getStringList('tip-order') == null || prefs.getStringList('tip-order').length == 0) {
       List<double> res = [5.0, 8.0, 10.0, 12.0, 15.0, 18.0, 20.0, 25.0, 30.0];
       return res;
     } else {
-      List<double> order = prefs.getStringList(key).map((str) => double.parse(str)).toList();
+      List<double> order = prefs.getStringList('tip-order').map((str) => double.parse(str)).toList();
       return order;
     }
   }
 
   _savePercentages() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String key = 'tip-order';
     List<String> strList = List<String>();
     for(TextEditingController p in _rates) {
       strList.add(p.text);
     }
-    prefs.setStringList(key, strList);
+    prefs.setStringList('tip-order', strList);
   }
 
   @override
@@ -162,7 +160,11 @@ class _TipConversionViewState extends State<TipConversionView> {
   }
 
   Widget _buildRow(int index) {
-    return Row(
+    return Wrap(
+      direction: Axis.horizontal,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4.0,
+      runSpacing: 8.0,
       children: <Widget>[
         Container(
           width: 50.0,
@@ -208,7 +210,9 @@ class _TipConversionViewState extends State<TipConversionView> {
         _tip[i] = '0.00';
         _total[i] = '0.00';
       } else {
-        double initial = double.tryParse(_amount.text);
+        double initial;
+        if(_amount.text.length != 0) initial = double.tryParse(_amount.text);
+        else initial = 0.0;
         double percent = double.tryParse(_rates[i].text) / 100;
         _tip[i] = (initial * percent).toStringAsFixed(2);
         _total[i] = (initial * (percent + 1)).toStringAsFixed(2);

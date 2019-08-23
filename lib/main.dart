@@ -20,7 +20,7 @@ abstract class Category {
   final String name;
   final IconData icon;
   final Color color;
-  final List<Unit> units;
+  List<Unit> units;
   final MaterialPageRoute route;
 
   Category(this.name, this.icon, {this.color, this.units, this.route});
@@ -61,6 +61,26 @@ class Storage {
   static bool darkMode;
   static List<int> convertersOrder;
   static List<int> favoritesOrder;
+  static List<Unit> _currencyUnits = List<Unit>();
+  static DateTime _lastCurrencyRequest;
+
+  static Future<List<Unit>> loadCurrency() async {
+    if(_currencyUnits.length == 0 || _lastCurrencyRequest.difference(DateTime.now()).inHours > 6) {
+      var url = 'https://api.exchangeratesapi.io/latest';
+      http.Response response = await http.get(url);
+      var decoded = json.decode(response.body);
+      List<Unit> res = List<Unit>();
+      res.add(Unit(decoded['base'], decoded['base'], 0, 1, 0));
+      var map = decoded['rates'];
+      for (int i = 0; i < map.length; i++) {
+        res.add(Unit(map.keys.toList()[i], map.keys.toList()[i], 0,
+            1 / map.values.toList()[i], 0));
+      }
+      _currencyUnits = res;
+      _lastCurrencyRequest = DateTime.tryParse(decoded['date']);
+      return _currencyUnits;
+    } else return _currencyUnits;
+  }
 
   static Future<List<Category>> readFavoriteCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -162,9 +182,7 @@ class _MainViewState extends State<MainView> {
         MaterialPageRoute(builder: (context) => TipConversionView()),
         color: Colors.yellow,
       ),
-      BasicCategory('Currency', NovaIcons.location_pin_bank_2, (_cachedCurrencyUnits != null &&
-        _lastCurrencyRequest.difference(DateTime.now()).inHours <= 6) ? _cachedCurrencyUnits :
-        await _getCurrencyUnits(), color: Colors.indigo,
+      BasicCategory('Currency', NovaIcons.location_pin_bank_2, [], color: Colors.indigo,
       ),
       BasicCategory('Length', NovaIcons.tools_measuring_tape,
         [
@@ -498,24 +516,6 @@ class _MainViewState extends State<MainView> {
   }
 
   int _currentTab = 0;
-  static List<Unit> _cachedCurrencyUnits;
-  static DateTime _lastCurrencyRequest;
-
-  static Future<List<Unit>> _getCurrencyUnits() async {
-    var url = 'https://api.exchangeratesapi.io/latest';
-    http.Response response = await http.get(url);
-    var decoded = json.decode(response.body);
-    print('currencies loaded');
-    List<Unit> res = List<Unit>();
-    res.add(Unit(decoded['base'], decoded['base'], 0, 1 ,0));
-    var map = decoded['rates'];
-    for(int i = 0; i < map.length; i++) {
-      res.add(Unit(map.keys.toList()[i], map.keys.toList()[i], 0, 1/map.values.toList()[i], 0));
-    }
-    _cachedCurrencyUnits = res;
-    _lastCurrencyRequest = DateTime.tryParse(decoded['date']);
-    return res;
-  }
 
   Widget _buildTab() {
     return Center(
