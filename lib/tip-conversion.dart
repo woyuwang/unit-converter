@@ -17,40 +17,32 @@ class _TipConversionViewState extends State<TipConversionView> {
   List<FocusNode> _focusNodes = List<FocusNode>();
   List<String> _tip = List<String>();
   List<String> _total = List<String>();
-  Future<void> _cachedFuture;
+  bool isLoaded = false;
 
   @override
   void initState() {
-    _cachedFuture = _setup();
+    _setupPercentages();
     super.initState();
   }
 
-  Future<void> _setup() async {
-    await _setupPercentages();
+  _setupPercentages() async {
+    _percentages = await _readPercentages();
+    await _savePercentages();
     _setupInputControllers();
     _setupFocusNodes();
     _setupValues();
+    setState(() {
+      isLoaded = true;
+    });
   }
 
-  Future<void> _setupPercentages() async {
-    _percentages = await _readPercentages();
-    _savePercentages();
-  }
-
-  void _setupValues() {
-    for(int i = 0; i < _rates.length; i++) {
-      _tip.add('0.00');
-      _total.add('0.00');
-    }
-  }
-
-  void _setupInputControllers() {
+  _setupInputControllers() {
     for(int i = 0; i < _percentages.length; i++) {
       _rates.add(TextEditingController(text: _percentages[i].toString()));
     }
   }
 
-  void _setupFocusNodes() {
+  _setupFocusNodes() {
     for(int i = 0; i < _percentages.length; i++) {
       _focusNodes.add(FocusNode());
       _focusNodes[i].addListener(() {
@@ -58,6 +50,13 @@ class _TipConversionViewState extends State<TipConversionView> {
           _rates[i].selection = TextSelection(baseOffset: 0, extentOffset: _rates[i].text.length);
         }
       });
+    }
+  }
+
+  _setupValues() {
+    for(int i = 0; i < _rates.length; i++) {
+      _tip.add('0.00');
+      _total.add('0.00');
     }
   }
 
@@ -83,7 +82,7 @@ class _TipConversionViewState extends State<TipConversionView> {
     }
   }
 
-  _savePercentages() async {
+  Future<void> _savePercentages() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> strList = List<String>();
     for(TextEditingController p in _rates) {
@@ -94,15 +93,11 @@ class _TipConversionViewState extends State<TipConversionView> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _cachedFuture,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return snapshot.connectionState == ConnectionState.done ? _buildBody() : Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
-      },
-    );
+    if(isLoaded) return _buildBody(context);
+    return Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(

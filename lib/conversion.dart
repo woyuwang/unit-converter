@@ -17,36 +17,35 @@ class _ConversionViewState extends State<ConversionView> {
   List<Unit> _units = List<Unit>();
   List<TextEditingController> _inputControllers = List<TextEditingController>();
   List<FocusNode> _focusNodes = List<FocusNode>();
-  Future<void> _cachedFuture;
+  bool isLoaded = false;
 
   @override
   void initState() {
-    _cachedFuture = _setup();
+    _setupUnits();
     super.initState();
   }
 
-  Future<void> _setup() async {
-    await _loadIfNecessary();
-    await _setupUnits();
-    _setupInputControllers();
-    _setupFocusNodes();
-  }
-
-  Future<void> _loadIfNecessary() async {
+  _loadIfNecessary() async {
     if(widget.category.name == 'Currency') {
       widget.category.units = await Storage.loadCurrency();
     }
   }
 
-  Future<void> _setupUnits() async {
+  _setupUnits() async {
+    await _loadIfNecessary();
     List<int> indices = await _readOrder();
     for(int i = 0; i < widget.category.units.length; i++) {
       _units.add(widget.category.units[indices[i]]);
     }
-    _saveOrder();
+    await _saveOrder();
+    _setupInputControllers();
+    _setupFocusNodes();
+    setState(() {
+      isLoaded = true;
+    });
   }
 
-  void _setupInputControllers() {
+  _setupInputControllers() {
     for(int i = 0; i < widget.category.units.length; i++) {
       if(i == 0) _inputControllers.add(TextEditingController(text: '0.00'));
       else _inputControllers.add(TextEditingController(
@@ -55,7 +54,7 @@ class _ConversionViewState extends State<ConversionView> {
     }
   }
 
-  void _setupFocusNodes() {
+  _setupFocusNodes() {
     for(int i = 0; i < widget.category.units.length; i++) {
       _focusNodes.add(FocusNode());
       _focusNodes[i].addListener(() {
@@ -78,15 +77,11 @@ class _ConversionViewState extends State<ConversionView> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _cachedFuture,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        return snapshot.connectionState == ConnectionState.done ? _buildBody() : Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
-      },
-    );
+    if(isLoaded) return _buildBody(context);
+    return Center(child: Container(width: 100.0, height: 100.0, child: CircularProgressIndicator()));
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomPadding: false,
       appBar: AppBar(
@@ -196,7 +191,7 @@ class _ConversionViewState extends State<ConversionView> {
     }
   }
 
-  _saveOrder() async {
+  Future<void> _saveOrder() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String key = widget.category.name + '-order';
     List<String> strList = List<String>();
@@ -213,7 +208,7 @@ class _ConversionViewState extends State<ConversionView> {
           _inputControllers[i].text = Unit.convert(_units[index], _units[i], double.tryParse(
             _inputControllers[index].text)).toStringAsFixed(2);
         } else {
-          _inputControllers[i].text = '0.0';
+          _inputControllers[i].text = Unit.convert(_units[index], _units[i], 0.0).toStringAsFixed(2);
         }
       }
     }
