@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:package_info/package_info.dart';
 
 class AboutView extends StatelessWidget {
   @override
@@ -22,15 +21,7 @@ class AboutView extends StatelessWidget {
               ListTile(
                 leading: Icon(Icons.info),
                 title: Text('Version Number'),
-                subtitle: Text('1.0.2'),
-              ),
-              Divider(
-                height: 20.0,
-              ),
-              ListTile(
-                leading: Icon(Icons.info),
-                title: Text('Build Number'),
-                subtitle: Text('3'),
+                subtitle: Text('1.0.3'),
               ),
             ],
           ),
